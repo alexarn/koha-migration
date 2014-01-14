@@ -15,6 +15,11 @@ sub new {
     $this->{'plugins'} = $plugins->{'plugins'};
     $this->{'plugin_errors'} = $plugins->{'plugin_errors'};
 
+    if (keys %{ $this->{plugin_errors} } && $main::verbose) {
+        print "Error(s) in plugin(s):\n";
+        print Data::Dumper::Dumper($this->{plugin_errors});
+    }
+
     return bless $this, $class;
 }
 
