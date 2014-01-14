@@ -44,40 +44,53 @@ sub migrate {
     }
 
     # Process biblio files..
+    print "Start migrating biblios\n" if $main::verbose;
     my $files = $this->{config}{bibliofiles};
     foreach my $file (@$files) {
-       my $biblios =  $this->loadFile($file);
-       next unless $biblios;
+        my ($total, $biblios) =  $this->loadFile($file);
+        next unless $biblios;
 
-       # Stores migration context for this biblio.
-       # Hooks are able to change it.
-       my $context = {
-           'insert' => 1,
-       };
+        # Stores migration context for this biblio.
+        # Hooks are able to change it.
+        my $context = {
+            'insert' => 1,
+            'file' => $file->{path},
+            'count' => 0,
+            'total' => $total,
+        };
 
-       while ( my $biblio = $biblios->next ) {
-           # 1) Use MARC::Transform ?;
+        while ( my $biblio = $biblios->next ) {
+            $context->{count}++;
+            if ($main::verbose) {
+                my $el = $context->{count} == $context->{total} ? "\n" : "\r";
+                print "$context->{file}: $context->{count}/$context->{total}$el" if $main::verbose;
+            }
 
-           # Call hook_biblio_process().
-           $plugins->callPlugins('biblio_transformed', [$biblio, $context]);
+            # Replace insert to 1 to save biblio.
+            $context->{insert} = 1;
 
-           # Match existing biblios in koha.
-           my $biblionumber = $dedup->match($biblio) unless $this->{skip_dedup};
+            # 1) Use MARC::Transform ?;
 
-           # Biblio is a duplicate.
-           $plugins->callPlugins('biblio_is_duplicate', [$biblio, $context, $biblionumber]) if $biblionumber;
+            # Call hook_biblio_process().
+            $plugins->callPlugins('biblio_transformed', [$biblio, $context]);
 
-           # save biblio in koha.
-           if ($context->{insert} && $this->{confirm}) {
-               my $biblionumber = $koha->addBiblioItems($biblio);
+            # Match existing biblios in koha.
+            my $biblionumber = $dedup->match($biblio) unless $this->{skip_dedup};
 
-               # Biblio has been saved in koha. So add it
-               # to the dedup data.
-               if ($biblionumber) {
-                   $dedup->add($biblio, $biblionumber) unless $this->{skip_dedup};
-               }
-           }
-       }
+            # Biblio is a duplicate.
+            $plugins->callPlugins('biblio_is_duplicate', [$biblio, $context, $biblionumber]) if $biblionumber;
+
+            # save biblio in koha.
+            if ($context->{insert} && $this->{confirm}) {
+                my $biblionumber = $koha->addBiblioItems($biblio);
+
+                # Biblio has been saved in koha. So add it
+                # to the dedup data.
+                if ($biblionumber) {
+                    $dedup->add($biblio, $biblionumber) unless $this->{skip_dedup};
+                }
+            }
+        }
     }
 }
 
@@ -89,13 +102,22 @@ sub loadFile {
 
     my $parser = $file->{parser};
     my $biblios;
+    my $count = 0;
     switch ($parser) {
         case 'mrc' {
+            $biblios = MARC::File::USMARC->in($path);
+            # Loop a firt time over biblios.
+            while (my $biblio = $biblios->next) {
+                $count++;
+            }
+            $biblios->close();
+            # Open file again to replace the pointer
+            # at the begining of the file.
             $biblios = MARC::File::USMARC->in($path);
         }
         # Write here case 'csv'.
     }
-    return $biblios;
+    return ($count, $biblios);
 
 }
 
