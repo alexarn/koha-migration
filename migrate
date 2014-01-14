@@ -6,17 +6,19 @@ use Getopt::Long;
 use Modern::Perl;
 use Koha::Migration;
 
-my ( $confirm, $verbose, $max );
+my ( $confirm, $verbose, $max, $skip_dedup );
 GetOptions (
     'confirm|c' => \$confirm,
     'v' => \$verbose,
     'max|m=i' => \$max,
+    'skip-dedup' => \$skip_dedup,
 );
 
-my $options {
+my $options = {
     'confirm' => $confirm,
     'verbose' => $verbose,
     'max' => $max,
+    'skip_dedup' => $skip_dedup,
     'Bin' => $Bin,
 };
 

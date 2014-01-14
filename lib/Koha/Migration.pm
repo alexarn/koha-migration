@@ -19,6 +19,7 @@ sub new {
         'confirm' => $options->{confirm},
         'verbose' => $options->{verbose},
         'max' => $options->{max},
+        'skip_dedup' => $options->{skip_dedup},
         'config' => {},
     };
     return bless $this, $class;
@@ -34,11 +35,17 @@ sub migrate {
     my $plugins = Koha::Migration::Plugins->new($this->{base_path});
 
     # Load configuration
+    print "Loading configuration..." if $this->{verbose};
     $this->load_config;
+    print " ok\n" if $this->{verbose};
 
     # Init dedup for biblios.
     my $dedup = Koha::Migration::Dedup->new($this->{config}{bibliodedup});
-    $dedup->init();
+    unless ($this->{skip_dedup}) {
+        print "Init Dedup for biblios" if $this->{verbose};
+        $dedup->init();
+        print " ok\n" if $this->{verbose};
+    }
 
     # Process biblio files..
     my $files = $this->{config}{bibliofiles};
@@ -59,7 +66,7 @@ sub migrate {
            $plugins->callPlugins('biblio_transformed', [$biblio, $context]);
 
            # Match existing biblios in koha.
-           my $biblionumber = $dedup->match($biblio);
+           my $biblionumber = $dedup->match($biblio) unless $this->{skip_dedup};
 
            # Biblio is a duplicate.
            $plugins->callPlugins('biblio_is_duplicate', [$biblio, $context]) if $biblionumber;
@@ -70,7 +77,9 @@ sub migrate {
 
                # Biblio has been saved in koha. So add it
                # to the dedup data.
-               $dedup->add($biblio, $biblionumber) if $biblionumber;
+               if ($biblionumber) {
+                   $dedup->add($biblio, $biblionumber) unless $this->{skip_dedup};
+               }
            }
        }
     }
