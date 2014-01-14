@@ -1,0 +1,3 @@
+name: example
+file: Example.pm
+package: Example

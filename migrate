@@ -1,0 +1,25 @@
+#! /usr/bin/perl
+use FindBin qw($Bin);
+use lib "$Bin/lib";
+use Getopt::Long;
+
+use Modern::Perl;
+use Koha::Migration;
+
+my ( $confirm, $verbose, $max );
+GetOptions (
+    'confirm|c' => \$confirm,
+    'v' => \$verbose,
+    'max|m=i' => \$max,
+);
+
+$options {
+    'confirm' => $confirm,
+    'verbose' => $verbose,
+    'max' => $max,
+    'Bin' => $Bin,
+};
+
+my $migration = Koha::Migration->new($options);
+
+$migration->migrate;

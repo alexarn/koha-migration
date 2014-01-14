@@ -1,0 +1,40 @@
+# optional. Migration name can be whatever you want.
+name: ''
+
+# List of biblio files to migrate.
+# path: Is read from data directory of koha-migration. i.e 'b/bibs.mrc' will search '../koha-migration/data/b/bibs.mrc'.
+# parser: Is one of 'mrc' (marc files) or 'csv'.
+bibliofiles:
+  - path: 'unimarcrecord.mrc'
+    parser: 'mrc'
+
+# Tells koha migration if it must deduplicate biblios and on what.
+#
+# target: can be one of 'koha', 'files' or 'both'.
+#   koha: Migrated biblios will be compared with those existing in koha. Before migration,
+# a dedup hash is built with all fields specified for each biblio.
+#   files: Migrated biblios will be compared with others migrated biblios. Each time a biblio
+# is saved in koha, a dedup key is built and added to dedup hash. The next one having the same key is ignored.
+#   both: Build a dedup hash from koha biblios that will be completed with those migrated.
+#
+# Each entry of a dedup hash looks like { 'key' => 'id' }. id is the unique biblio identifier in koha. So don't
+# forget to set id_field option.
+
+# keys: Enter here fields used to build the dedup key. Dedup is done after files parsing. So key must use marc fields
+# between angle brackets (i.e '<010$a>').
+# As some marc fields can be multivalued, you can specify filed index like that: '700$a(0)' (the first 700$a).
+bibliodedup:
+  target: 'koha'
+  keys:
+    - name: 'isbn'
+      weight: 0
+      key: ['010$a']
+      transform: 'cleanIsbn'
+    - name: 'title_editor'
+      weight: 1
+      key: ['200$a', '210$c', '210$d']
+      transform: 'remove_special_chars'
+    - name: 'xxxxxxx'
+      weight: 2
+      key: ['200$a', '210$c', '210$d']
+      transform: 'remove_special_chars'
