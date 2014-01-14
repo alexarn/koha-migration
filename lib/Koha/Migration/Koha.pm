@@ -38,25 +38,24 @@ sub addBiblioItems {
     return $ids[0];
 }
 
-sub getbiblios {
+sub getBiblioIds {
     my $this = shift;
 
     my $dbh = C4::Context->dbh;
     my $sth = $dbh->prepare("SELECT biblionumber FROM biblio");
     $sth->execute();
-    my $data = $data = $sth->fetchall_arrayref({});
+    my $data = $data = $sth->fetchall_arrayref([]);
     $sth->finish;
 
-    my $biblios;
-    foreach my $entry (@{ $data }) {
-        $biblionumber = $entry->{biblionumber};
-        $biblio = GetMarcBiblio($biblionumber);
+    return $data;
 
-        if ($biblio) {
-            push @{ $biblios }, $biblio;
-        }
-    }
-    return $biblios;
+}
+
+sub getBiblioData {
+    my ($this, $biblionumber) = @_;
+
+    my $biblio = GetMarcBiblio($biblionumber);
+    return $biblio;
 }
 
 1;

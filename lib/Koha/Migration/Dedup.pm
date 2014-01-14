@@ -41,16 +41,17 @@ sub init {
         print "Initialize dedup. Checking koha biblios\n" if $main::verbose;
         use Koha::Migration::Koha;
         my $koha = Koha::Migration::Koha->new();
-        my $biblios = $koha->getbiblios();
+        my $ids = $koha->getBiblioIds();
         my $count = 0;
-        my $total = scalar(@$biblios);
-        foreach my $biblio (@{ $biblios }) {
+        my $total = scalar(@$ids);
+        foreach my $entry (@{ $ids }) {
+            my $id = $entry->[0];
             $count++;
             if ($main::verbose) {
                 print $count == $total ? "$count/$total\n" : "$count/$total\r";
             }
-            my $id = Koha::Migration::Marc->get($biblio, $this->{id_field});
-            $this->add($biblio, $id);
+            my $biblio = $koha->getBiblioData($id);
+            $this->add($biblio, $id) if $biblio;
         }
     }
 }
