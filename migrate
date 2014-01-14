@@ -13,7 +13,7 @@ GetOptions (
     'max|m=i' => \$max,
 );
 
-$options {
+my $options {
     'confirm' => $confirm,
     'verbose' => $verbose,
     'max' => $max,
