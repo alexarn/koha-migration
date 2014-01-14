@@ -38,10 +38,14 @@ sub init {
     # If dedup target is koha or both, we need
     # to load all biblios from koha.
     if ($this->{target} =~ /^(koha|both|)$/) {
+        print "Initialize dedup. Checking koha biblios\n" if $main::verbose;
         use Koha::Migration::Koha;
         my $koha = Koha::Migration::Koha->new();
         my $biblios = $koha->getbiblios();
+        my $count = 0;
         foreach my $biblio (@{ $biblios }) {
+            $count++;
+            print "$count\r" if $main::verbose;
             my $id = Koha::Migration::Marc->get($biblio, $this->{id_field});
             $this->add($biblio, $id);
         }

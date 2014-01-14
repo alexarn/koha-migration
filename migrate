@@ -6,7 +6,8 @@ use Getopt::Long;
 use Modern::Perl;
 use Koha::Migration;
 
-my ( $confirm, $verbose, $max, $skip_dedup );
+my ( $confirm, $max, $skip_dedup );
+our $verbose;
 GetOptions (
     'confirm|c' => \$confirm,
     'v' => \$verbose,
@@ -16,7 +17,6 @@ GetOptions (
 
 my $options = {
     'confirm' => $confirm,
-    'verbose' => $verbose,
     'max' => $max,
     'skip_dedup' => $skip_dedup,
     'Bin' => $Bin,

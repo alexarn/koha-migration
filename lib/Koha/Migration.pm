@@ -17,7 +17,6 @@ sub new {
     my $this = {
         'base_path' => $options->{Bin},
         'confirm' => $options->{confirm},
-        'verbose' => $options->{verbose},
         'max' => $options->{max},
         'skip_dedup' => $options->{skip_dedup},
         'config' => {},
@@ -25,6 +24,7 @@ sub new {
     return bless $this, $class;
 }
 
+$|=1;
 sub migrate {
     my $this = shift;
 
@@ -35,16 +35,12 @@ sub migrate {
     my $plugins = Koha::Migration::Plugins->new($this->{base_path});
 
     # Load configuration
-    print "Loading configuration..." if $this->{verbose};
     $this->load_config;
-    print " ok\n" if $this->{verbose};
 
     # Init dedup for biblios.
     my $dedup = Koha::Migration::Dedup->new($this->{config}{bibliodedup});
     unless ($this->{skip_dedup}) {
-        print "Init Dedup for biblios" if $this->{verbose};
         $dedup->init();
-        print " ok\n" if $this->{verbose};
     }
 
     # Process biblio files..
@@ -106,11 +102,13 @@ sub loadFile {
 sub load_config {
     my $this = shift;
 
+    print "Loading configuration..." if $main::verbose;
     my $config_file = $this->{base_path} . CONF_PATH . '/config.yaml';
     my $config = YAML::LoadFile($config_file)
         or die "unable to load $config_file";
 
     $this->{config} = $config;
+    print " ok\n" if $main::verbose;
 }
 
 1;
