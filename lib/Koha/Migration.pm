@@ -57,6 +57,7 @@ sub migrate {
             'file' => $file->{path},
             'count' => 0,
             'total' => $total,
+            'duplicates' => 0,
         };
 
         while ( my $biblio = $biblios->next ) {
@@ -78,7 +79,10 @@ sub migrate {
             my $biblionumber = $dedup->match($biblio) unless $this->{skip_dedup};
 
             # Biblio is a duplicate.
-            $plugins->callPlugins('biblio_is_duplicate', [$biblio, $context, $biblionumber]) if $biblionumber;
+            if ($biblionumber) {
+                $plugins->callPlugins('biblio_is_duplicate', [$biblio, $context, $biblionumber]);
+                $context->{duplicates}++;
+            }
 
             # save biblio in koha.
             if ($context->{insert} && $this->{confirm}) {
