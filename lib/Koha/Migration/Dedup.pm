@@ -43,9 +43,12 @@ sub init {
         my $koha = Koha::Migration::Koha->new();
         my $biblios = $koha->getbiblios();
         my $count = 0;
+        my $total = scalar(@$biblios);
         foreach my $biblio (@{ $biblios }) {
             $count++;
-            print "$count\r" if $main::verbose;
+            if ($main::verbose) {
+                print $count == $total ? "$count/$total\n" : "$count/$total\r";
+            }
             my $id = Koha::Migration::Marc->get($biblio, $this->{id_field});
             $this->add($biblio, $id);
         }
