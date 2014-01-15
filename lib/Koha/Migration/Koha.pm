@@ -1,6 +1,7 @@
 package Koha::Migration::Koha;
 
 use C4::Biblio;
+use C4::Items;
 use C4::Context;
 
 sub new {
@@ -19,20 +20,19 @@ sub addBiblioItems {
     my $fmk = '';
     my @ids = ( eval { AddBiblio($biblio, $fmk, { defer_marc_save => 1 }); } )[0,1];
     if ( $@ or not @ids ) {
-        say $biblio->as_formatted;
-        say $@;
-        die "AddBiblio: ".$biblio->leader().", $@";
+        warn $biblio->as_formatted;
+        warn $@;
     }
     else {
         my ($itemnumbers, $errors) = eval { AddItemBatchFromMarc( $biblio, @ids, $fmk ) };
         if ( $@ ) {
-            say $biblio->as_formatted;
-            die "AddItemBatchFromMarc: ".$biblio->leader().", $@";
+            warn $biblio->as_formatted;
+            warn $@;
         }
         eval { ModBiblioMarc( $biblio, $ids[0], $fmk ) };
         if ( $@ ) {
-            say $biblio->as_formatted;
-            die "ModBiblioMarc: ".$biblio->leader().", $@";
+            warn $biblio->as_formatted;
+            warn $@;
         }
     }
     return $ids[0];
