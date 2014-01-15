@@ -58,6 +58,7 @@ sub migrate {
             'count' => 0,
             'total' => $total,
             'duplicates' => 0,
+            'imported' => 0,
         };
 
         while ( my $biblio = $biblios->next ) {
@@ -91,10 +92,12 @@ sub migrate {
                 # Biblio has been saved in koha. So add it
                 # to the dedup data.
                 if ($biblionumber) {
+                    $context->{imported}++;
                     $dedup->add($biblio, $biblionumber) unless $this->{skip_dedup};
                 }
             }
         }
+        print Data::Dumper::Dumper($context) if $main::verbose;
     }
 }
 
