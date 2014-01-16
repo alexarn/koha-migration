@@ -62,8 +62,10 @@ sub add {
     my $config = $this->{config};
     foreach my $key (@{ $config->{keys} }) {
         my $string = $this->buildKey($biblio, $key);
-        $key->{name} ||= 'NONE';
-        $this->{data}{$key->{name}}{$string} = $id;
+        if ($string) {
+            $key->{name} ||= 'NONE';
+            $this->{data}{$key->{name}}{$string} = $id;
+        }
     }
 }
 
